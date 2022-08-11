@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Ray.Quartz.Hostloc": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

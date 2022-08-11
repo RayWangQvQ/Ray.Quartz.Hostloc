@@ -14,11 +14,17 @@ public class HostlocHostedService : IHostedService
 
     private readonly IConfiguration _configuration;
     private readonly IHostEnvironment _hostEnvironment;
+    private readonly IHostApplicationLifetime _hostApplicationLifetime;
 
-    public HostlocHostedService(IConfiguration configuration, IHostEnvironment hostEnvironment)
+    public HostlocHostedService(
+        IConfiguration configuration, 
+        IHostEnvironment hostEnvironment, 
+        IHostApplicationLifetime hostApplicationLifetime
+        )
     {
         _configuration = configuration;
         _hostEnvironment = hostEnvironment;
+        _hostApplicationLifetime = hostApplicationLifetime;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -37,6 +43,8 @@ public class HostlocHostedService : IHostedService
         var helloWorldService = _abpApplication.ServiceProvider.GetRequiredService<HelloWorldService>();
 
         await helloWorldService.SayHelloAsync();
+
+        _hostApplicationLifetime.StopApplication();
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
