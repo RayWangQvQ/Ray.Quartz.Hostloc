@@ -13,5 +13,5 @@ echo -e "hostloc仓库目录: $hostloc_repo_dir\n"
 
 cd $hostloc_repo_dir
 export DOTNET_ENVIRONMENT=Production && \
-export Ray_Run=login && \
+export Ray_Hostloc_Run=login && \
 dotnet run --project ./src/Ray.Quartz.Hostloc
