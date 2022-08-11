@@ -38,7 +38,7 @@ public class Program
                         configurationSource=> configurationSource is EnvironmentVariablesConfigurationSource,
                         new EnvironmentVariablesConfigurationSource()
                         {
-                            Prefix = "Ray_"
+                            Prefix = "Ray_Hostloc_"
                         }
                         );
                 })
