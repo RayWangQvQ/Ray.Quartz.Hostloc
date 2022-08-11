@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.EnvironmentVariables;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -28,6 +31,17 @@ public class Program
             Log.Information("Starting console host.");
 
             await Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((hostBuilderContext, configurationBuilder) =>
+                {
+                    IList<IConfigurationSource> list = configurationBuilder.Sources;
+                    list.ReplaceWhile(
+                        configurationSource=> configurationSource is EnvironmentVariablesConfigurationSource,
+                        new EnvironmentVariablesConfigurationSource()
+                        {
+                            Prefix = "Ray_"
+                        }
+                        );
+                })
                 .ConfigureServices(services =>
                 {
                     services.AddHostedService<HostlocHostedService>();

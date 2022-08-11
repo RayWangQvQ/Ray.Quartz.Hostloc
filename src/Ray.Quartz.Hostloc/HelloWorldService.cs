@@ -42,6 +42,9 @@ public class HelloWorldService : ITransientDependency
             case "login":
                 await LoginAsync();
                 break;
+            default:
+                Logger.LogWarning("任务不存在：{task}",taskName);
+                break;
         }
     }
 
