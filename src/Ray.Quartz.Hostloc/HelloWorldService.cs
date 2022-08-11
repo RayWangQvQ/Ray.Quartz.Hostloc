@@ -51,6 +51,7 @@ public class HelloWorldService : ITransientDependency
     private async Task LoginAsync()
     {
         Logger.LogInformation("开始任务：登录");
+        Logger.LogInformation(_accountConfig.UserName);
 
         var req = new LoginRequest(_accountConfig.UserName, _accountConfig.Pwd);
         var re = await _hostlocApi.LoginAsync(req);
