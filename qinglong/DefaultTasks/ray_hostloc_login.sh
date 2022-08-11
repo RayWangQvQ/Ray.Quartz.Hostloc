@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # new Env("hostloc每日登录")
-# cron 30 9 * * * hostloc_login.sh
+# cron 30 9 * * * ray_hostloc_login.sh
 
 dir_shell=$QL_DIR/shell
 . $dir_shell/share.sh
