@@ -12,6 +12,6 @@ hostloc_repo_dir="$(find $dir_repo -type d -name $hostloc_repo | head -1)"
 echo -e "hostloc仓库目录: $hostloc_repo_dir\n"
 
 cd $hostloc_repo_dir
-export ENVIRONMENT=Production && \
+export DOTNET_ENVIRONMENT=Production && \
 export Ray_Run=login && \
 dotnet run --project ./src/Ray.Quartz.Hostloc
