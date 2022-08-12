@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Castle.Core.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -42,6 +41,9 @@ public class HelloWorldService : ITransientDependency
         var taskName = _configuration["Run"];
         switch (taskName)
         {
+            case "encryptPwd":
+                await EncryptPwd();
+                break;
             case "login":
                 await LoginAsync();
                 break;
@@ -54,12 +56,24 @@ public class HelloWorldService : ITransientDependency
         }
     }
 
+    private Task EncryptPwd()
+    {
+        //Logger.LogInformation("原密码：{pwd}",_accountConfig.Pwd);
+        var pwdEncrypted = _accountConfig.Pwd.DESToEncrypt(_configuration["EncryptionKey"]);
+        Logger.LogInformation("加密后的密码：{pwd}",pwdEncrypted);
+        Logger.LogInformation("生成后，请删除配置中的原始，使用加密后密码作为配置");
+
+        return Task.CompletedTask;
+    }
+
     private async Task LoginAsync()//todo:获取登录后cookie
     {
         Logger.LogInformation("开始任务：登录");
         Logger.LogInformation(_accountConfig.UserName);
 
-        var req = new LoginRequest(_accountConfig.UserName, _accountConfig.Pwd);//todo:密码加密
+        _accountConfig.Pwd = _accountConfig.PwdEncrypted.DESToDecrypt(_configuration["EncryptionKey"]);
+
+        var req = new LoginRequest(_accountConfig.UserName, _accountConfig.Pwd);
         var re = await _hostlocApi.LoginAsync(req);
         Logger.LogInformation("结果：{response}", re.IsSuccessStatusCode);
 
