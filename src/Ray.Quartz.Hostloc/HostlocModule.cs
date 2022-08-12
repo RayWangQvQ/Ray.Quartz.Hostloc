@@ -31,7 +31,10 @@ public class HostlocModule : AbpModule
             .ConfigureHttpClient(c =>
             {
                 c.BaseAddress = new Uri("https://hostloc.com");
-                c.DefaultRequestHeaders.UserAgent.ParseAdd(config["UserAgent"]);
+
+                var ua = config["UserAgent"];
+                if (!string.IsNullOrWhiteSpace(ua))
+                    c.DefaultRequestHeaders.UserAgent.ParseAdd(ua);
             });
     }
 

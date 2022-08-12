@@ -10,12 +10,23 @@ namespace Ray.Quartz.Hostloc.Agents
     public interface IHostlocApi
     {
         [Post("/member.php?mod=logging&action=login&loginsubmit=yes&infloat=yes&lssubmit=yes&inajax=1")]
-        Task<string> LoginAsync([Body(BodySerializationMethod.UrlEncoded)] LoginRequest request);
+        Task<ApiResponse<string>> LoginAsync([Body(BodySerializationMethod.UrlEncoded)] LoginRequest request);
+
+        [Get("/forum-45-1.html")]
+        Task<string> GetPostListPageAsync();
+
+        [Get("/space-uid-{uid}.html")]
+        [QueryUriFormat(UriFormat.Unescaped)]
+        Task<string> GetSpacePageAsync([Header("Cookie")] string cookie, string uid);
+
+        [Get("/home.php{**param}")]
+        [QueryUriFormat(UriFormat.Unescaped)]
+        Task<string> VisitSpaceAsync([Header("Cookie")] string cookie, string param);
     }
 
     public class LoginRequest
     {
-        public LoginRequest(string userName,string pwd)
+        public LoginRequest(string userName, string pwd)
         {
             username = userName;
             password = pwd;
