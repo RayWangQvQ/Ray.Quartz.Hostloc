@@ -9,6 +9,27 @@ namespace Ray.Quartz.Hostloc.Helpers
 {
     public class RegexHelper
     {
+        public static string QuerySingle(string source, string pattern)
+        {
+            Regex rg = new Regex(pattern, RegexOptions.Multiline | RegexOptions.Singleline);
+            return rg.Match(source).Value;
+        }
+
+        public static List<string> QueryMultiple(string source, string pattern)
+        {
+            Regex rg = new Regex(pattern, RegexOptions.Multiline | RegexOptions.Singleline);
+            //Regex rg = new Regex(pattern, RegexOptions.Singleline);
+
+            MatchCollection matches = rg.Matches(source);
+
+            List<string> resList = new List<string>();
+
+            foreach (Match item in matches)
+                resList.Add(item.Value);
+
+            return resList;
+        }
+
         /// <summary>
         /// 截取字符串中开始和结束字符串中间的字符串
         /// </summary>

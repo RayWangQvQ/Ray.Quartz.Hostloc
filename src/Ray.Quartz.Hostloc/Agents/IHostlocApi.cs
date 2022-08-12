@@ -12,6 +12,9 @@ namespace Ray.Quartz.Hostloc.Agents
         [Post("/member.php?mod=logging&action=login&loginsubmit=yes&infloat=yes&lssubmit=yes&inajax=1")]
         Task<ApiResponse<string>> LoginAsync([Body(BodySerializationMethod.UrlEncoded)] LoginRequest request);
 
+        [Get("/home.php?mod=spacecp&ac=credit&op=log&suboperation=creditrulelog")]
+        Task<ApiResponse<string>> GetCreditHistoryPageAsync([Header("Cookie")] string cookie);
+
         [Get("/forum-45-1.html")]
         Task<string> GetPostListPageAsync();
 

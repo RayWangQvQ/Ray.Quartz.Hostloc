@@ -25,6 +25,7 @@ public class HostlocModule : AbpModule
         var config = context.Services.GetConfiguration();
 
         context.Services.Configure<AccountOptions>(config.GetSection("Account"));
+        context.Services.AddSingleton<CookieManager>();
 
         context.Services
             .AddRefitClient<IHostlocApi>()
