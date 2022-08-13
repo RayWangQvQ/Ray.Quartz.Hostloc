@@ -60,7 +60,7 @@ public class HelloWorldService : ITransientDependency
             case "visitSpace":
                 await VisitSpaceAsync();
                 break;
-            case "voteAsync":
+            case "vote":
                 await VoteAsync();
                 break;
             default:
