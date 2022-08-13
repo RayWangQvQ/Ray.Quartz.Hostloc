@@ -10,6 +10,8 @@ using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 using Ray.Quartz.Hostloc.Helpers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using Ray.Quartz.Hostloc.Models;
 using Ray.Quartz.Hostloc.Statistics;
 
@@ -47,7 +49,7 @@ public class HelloWorldService : ITransientDependency
         switch (taskName)
         {
             case "encryptPwd":
-                await EncryptPwd();
+                await EncryptPwdAsync();
                 break;
             case "login":
                 await LoginAsync();
@@ -56,7 +58,10 @@ public class HelloWorldService : ITransientDependency
                 await GetCreditHistoryAsync();
                 break;
             case "visitSpace":
-                await VisitSpace();
+                await VisitSpaceAsync();
+                break;
+            case "voteAsync":
+                await VoteAsync();
                 break;
             default:
                 Logger.LogWarning("任务不存在：{task}", taskName);
@@ -64,17 +69,25 @@ public class HelloWorldService : ITransientDependency
         }
     }
 
-    private Task EncryptPwd()
+    /// <summary>
+    /// 加密密码
+    /// </summary>
+    /// <returns></returns>
+    public Task EncryptPwdAsync()
     {
         //Logger.LogInformation("原密码：{pwd}",_accountConfig.Pwd);
         var pwdEncrypted = _accountConfig.Pwd.DESToEncrypt(_configuration["EncryptionKey"]);
-        Logger.LogInformation("加密后的密码：{pwd}",pwdEncrypted);
+        Logger.LogInformation("加密后的密码：{pwd}", pwdEncrypted);
         Logger.LogInformation("生成后，请删除配置中的原始，使用加密后密码作为配置");
 
         return Task.CompletedTask;
     }
 
-    private async Task LoginAsync()
+    /// <summary>
+    /// 登录获取Cookie
+    /// </summary>
+    /// <returns></returns>
+    public async Task LoginAsync()
     {
         Logger.LogInformation("开始任务：登录");
         Logger.LogInformation(_accountConfig.UserName);
@@ -91,7 +104,11 @@ public class HelloWorldService : ITransientDependency
         Logger.LogInformation("Success{newLine}", Environment.NewLine);
     }
 
-    private async Task VisitSpace()
+    /// <summary>
+    /// 访问他人主页
+    /// </summary>
+    /// <returns></returns>
+    public async Task VisitSpaceAsync()
     {
         var taskName = "访问别人空间";
         Logger.LogInformation("开始任务：{taskName}", taskName);
@@ -102,7 +119,7 @@ public class HelloWorldService : ITransientDependency
         await InitAsync();
 
         //获取当前任务状态
-        var historyList= await GetCreditHistoryAsync();
+        var historyList = await GetCreditHistoryAsync();
         statistics.PreCreditHistory = historyList.FirstOrDefault(x => x.ActionName == taskName);
 
         //获取帖子列表 <a href="space-uid-39205.html" c="1">ikxin</a></cite>
@@ -124,7 +141,7 @@ public class HelloWorldService : ITransientDependency
         //访问空间
         for (int i = 0; i < uidList.Count; i++)
         {
-            var num=i+1;
+            var num = i + 1;
             var item = uidList[i];
             Logger.LogInformation("访问第{num}个：{code}", num, item);
             try
@@ -158,6 +175,111 @@ public class HelloWorldService : ITransientDependency
         statistics.LogInfo(Logger);
     }
 
+    /// <summary>
+    /// 参与投票
+    /// </summary>
+    /// <returns></returns>
+    public async Task VoteAsync()
+    {
+        var taskName = "参与投票";
+        Logger.LogInformation("=========开始任务：{taskName}=========", taskName);
+
+        await InitAsync();
+
+        //获取投票帖子
+        Logger.LogInformation("搜索今日投票帖");
+        var pageResponse = await _hostlocApi.GetVotePostListPageAsync();
+        var page = pageResponse.Content;
+        var table = RegexHelper.QuerySingle(page, "<table summary=\"forum_45\".+?id=\"threadlisttableid\".*?>.+?</table>");
+
+        var tbodyList = RegexHelper.QueryMultiple(table, "<tbody id=\"normalthread_[0-9]+?\">.+?</tbody>");
+        if (tbodyList.Count == 0)
+        {
+            Logger.LogInformation("一天内没有人发起投票，结束");
+            return;
+        }
+
+        Logger.LogInformation("共找到{count}个投票贴", tbodyList.Count);
+        Logger.LogInformation(Environment.NewLine);
+
+        var votePostList = new List<VotePost>();
+        for (int i = 0; i < tbodyList.Count; i++)
+        {
+            try
+            {
+                var num = i;
+                Logger.LogInformation("------查看第{num}个投票贴----", num + 1);
+
+                var item = tbodyList[i];
+                var votePost = new VotePost(item);
+                votePostList.Add(votePost);
+
+                //获取投票页面
+                Logger.LogInformation("帖子：{vatePage}", votePost.Title);
+                var votePageUrl = votePost.Url.Substring("forum.php".Length);
+                var tid = RegexHelper.QuerySingle(votePageUrl, "tid=[0-9]+");
+                tid = tid.Replace("tid=", "");
+                var votePage = await _hostlocApi.GetForumPageAsync(_cookieManager.CookieStr, votePageUrl);
+
+                if (votePage.Content.Contains("您已经投过票"))
+                {
+                    Logger.LogInformation("曾经已投过票，跳过");
+                }
+                else
+                {
+                    Logger.LogInformation("开始投票");
+
+                    //获取选项
+                    var voteTable =
+                        RegexHelper.QuerySingle(votePage.Content, "<table summary=\"poll panel\".+?</table>");
+                    /*
+                    var trList = RegexHelper.QueryMultiple(voteTable, "<tr.+?</tr>");
+                    var selectTr = trList[^2];
+                    var selectValue = RegexHelper.QuerySingle(selectTr, "value=\"[0-9]+\"")
+                        .Replace("value", "")
+                        .Replace("\"", "");
+                    */
+                    var selectValue = RegexHelper.QueryMultiple(voteTable, "value=\"[0-9]+\"")
+                        .Select(x => x.Replace("value=", "")
+                            .Replace("\"", ""))
+                        .Last();
+                    Logger.LogInformation("选项id：{id}", selectValue);
+
+                    //上报
+                    var voteResult = await _hostlocApi.VoteAsync(_cookieManager.CookieStr, tid,
+                        new VoteRequest() { pollanswers = selectValue });
+
+                    Logger.LogInformation("投票结果：{result}", voteResult.IsSuccessStatusCode);
+
+                    //检测投票结果
+                    Logger.LogInformation("刷新页面确认结果：");
+                    votePage = await _hostlocApi.GetForumPageAsync(_cookieManager.CookieStr, votePageUrl);
+                    if (votePage.Content.Contains("您已经投过票"))
+                    {
+                        Logger.LogInformation("确认通过");
+                    }
+                    else
+                    {
+                        Logger.LogInformation("投票失败");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "投票异常");
+            }
+            finally
+            {
+                Logger.LogInformation(Environment.NewLine);
+                await Task.Delay(3 * 1000);
+            }
+        }
+
+        //Logger.LogInformation(JsonSerializer.Serialize(votePostList, options: new JsonSerializerOptions {Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping}));
+    }
+
+    #region private
+
     private async Task<List<CreditHistory>> GetCreditHistoryAsync()
     {
         await InitAsync();
@@ -168,15 +290,16 @@ public class HelloWorldService : ITransientDependency
 
         var trs = RegexHelper.QueryMultiple(table, "<tr.+?</tr>");//?指定非贪婪模式
 
-        var list=new List<CreditHistory>();
+        var list = new List<CreditHistory>();
         for (var index = 1; index < trs.Count; index++)
         {
             var tr = trs[index];
             var history = new CreditHistory(tr);
-            history.LogInfo(Logger);
+            //history.LogInfo(Logger);
             list.Add(history);
         }
 
+        Logger.LogInformation(JsonSerializer.Serialize(list));
         return list;
     }
 
@@ -187,4 +310,7 @@ public class HelloWorldService : ITransientDependency
             await LoginAsync();
         }
     }
+
+    #endregion
+
 }

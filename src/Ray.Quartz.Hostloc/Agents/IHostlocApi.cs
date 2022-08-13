@@ -25,6 +25,18 @@ namespace Ray.Quartz.Hostloc.Agents
         [Get("/home.php{**param}")]
         [QueryUriFormat(UriFormat.Unescaped)]
         Task<string> VisitSpaceAsync([Header("Cookie")] string cookie, string param);
+
+        [Get("/forum.php{**url}")]
+        [QueryUriFormat(UriFormat.Unescaped)]
+        Task<ApiResponse<string>> GetVotePostListPageAsync(string url= "?mod=forumdisplay&fid=45&orderby=lastpost&filter=dateline&dateline=86400&specialtype=poll");
+
+        [Get("/forum.php{**url}")]
+        [QueryUriFormat(UriFormat.Unescaped)]
+        Task<ApiResponse<string>> GetForumPageAsync([Header("Cookie")] string cookie, string url);
+
+        [Post("/forum.php?mod=misc&action=votepoll&fid=45&pollsubmit=yes&quickforward=yes&inajax=1")]
+        Task<ApiResponse<string>> VoteAsync([Header("Cookie")] string cookie, string tid, [Body(BodySerializationMethod.UrlEncoded)] VoteRequest request);
+
     }
 
     public class LoginRequest
@@ -46,5 +58,11 @@ namespace Ray.Quartz.Hostloc.Agents
         public string quickforward { get; set; } = "yes";
 
         public string handlekey { get; set; } = "ls";
+    }
+
+    public class VoteRequest
+    {
+        [AliasAs("pollanswers[]")]
+        public string pollanswers { get; set; }
     }
 }
