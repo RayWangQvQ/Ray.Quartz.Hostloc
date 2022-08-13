@@ -220,8 +220,16 @@ public class HelloWorldService : ITransientDependency
                 var tid = RegexHelper.QuerySingle(votePageUrl, "tid=[0-9]+");
                 tid = tid.Replace("tid=", "");
                 var votePage = await _hostlocApi.GetForumPageAsync(_cookieManager.CookieStr, votePageUrl);
-
-                if (votePage.Content.Contains("您已经投过票"))
+                var votePageContent = votePage.Content;
+                if (votePageContent.IsNullOrWhiteSpace())
+                {
+                    Logger.LogInformation("未获取到页面");
+                }
+                else if (votePageContent.Contains("投票已经结束"))
+                {
+                    Logger.LogInformation("投票已结束，跳过");
+                }
+                else if (votePageContent.Contains("您已经投过票"))
                 {
                     Logger.LogInformation("曾经已投过票，跳过");
                 }
@@ -254,7 +262,7 @@ public class HelloWorldService : ITransientDependency
                     //检测投票结果
                     Logger.LogInformation("刷新页面确认结果：");
                     votePage = await _hostlocApi.GetForumPageAsync(_cookieManager.CookieStr, votePageUrl);
-                    if (votePage.Content.Contains("您已经投过票"))
+                    if (votePage.Content?.Contains("您已经投过票") ?? false)
                     {
                         Logger.LogInformation("确认通过");
                     }

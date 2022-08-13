@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Security.Cryptography;
 
@@ -16,7 +12,8 @@ namespace Ray.Quartz.Hostloc.Helpers
         {
             if (string.IsNullOrEmpty(source)) { return ""; }
             byte[] inputByteArray = Encoding.UTF8.GetBytes(source);
-            var dCSP = new DESCryptoServiceProvider();
+            //var dCSP = new DESCryptoServiceProvider();
+            var dCSP = DES.Create();
             var mStream = new MemoryStream();
             var cStream = new CryptoStream(mStream, dCSP.CreateEncryptor(rgbKey, rgbIV), CryptoStreamMode.Write);
             cStream.Write(inputByteArray, 0, inputByteArray.Length);
@@ -36,7 +33,8 @@ namespace Ray.Quartz.Hostloc.Helpers
             if (string.IsNullOrEmpty(source)) { return ""; }
             byte[] inputByteArray = Convert.FromBase64String(source);
 #pragma warning disable S5547 // Cipher algorithms should be robust
-            var DCSP = new DESCryptoServiceProvider();
+            //var DCSP = new DESCryptoServiceProvider();
+            var DCSP = DES.Create();
 #pragma warning restore S5547 // Cipher algorithms should be robust
             MemoryStream mStream = new MemoryStream();
             CryptoStream cStream = new CryptoStream(mStream, DCSP.CreateDecryptor(rgbKey, rgbIV), CryptoStreamMode.Write);
@@ -58,7 +56,8 @@ namespace Ray.Quartz.Hostloc.Helpers
         {
             if (string.IsNullOrEmpty(source)) { return ""; }
             var inputByteArray = Encoding.UTF8.GetBytes(source);
-            AesCryptoServiceProvider serviceProvider = new AesCryptoServiceProvider();
+            //var serviceProvider = new AesCryptoServiceProvider();
+            var serviceProvider = Aes.Create();
             var encryptor = serviceProvider.CreateEncryptor(rgbKey, rgbIV);
             MemoryStream mStream = new MemoryStream();
             CryptoStream cStream = new CryptoStream(mStream, encryptor, CryptoStreamMode.Write);
@@ -99,7 +98,8 @@ namespace Ray.Quartz.Hostloc.Helpers
         {
             if (string.IsNullOrEmpty(source)) { return ""; }
             var inputByteArray = Encoding.UTF8.GetBytes(source);
-            AesCryptoServiceProvider serviceProvider = new AesCryptoServiceProvider();
+            //var serviceProvider = new AesCryptoServiceProvider();
+            var serviceProvider = Aes.Create();
             var encryptor = serviceProvider.CreateDecryptor(rgbKey, rgbIV);
             MemoryStream mStream = new MemoryStream();
             CryptoStream cStream = new CryptoStream(mStream, encryptor, CryptoStreamMode.Write);
@@ -176,7 +176,8 @@ namespace Ray.Quartz.Hostloc.Helpers
         {
             if (string.IsNullOrEmpty(source)) { return ""; }
             var inputByteArray = Encoding.UTF8.GetBytes(source);
-            TripleDESCryptoServiceProvider serviceProvider = new TripleDESCryptoServiceProvider();
+            //var serviceProvider = new TripleDESCryptoServiceProvider();
+            var serviceProvider = TripleDES.Create();
             serviceProvider.Mode = CipherMode.ECB;
             var encryptor = serviceProvider.CreateEncryptor(rgbKey, rgbIV);
             MemoryStream mStream = new MemoryStream();
@@ -191,7 +192,8 @@ namespace Ray.Quartz.Hostloc.Helpers
         {
             if (string.IsNullOrEmpty(source)) { return ""; }
             var inputByteArray = Encoding.UTF8.GetBytes(source);
-            TripleDESCryptoServiceProvider serviceProvider = new TripleDESCryptoServiceProvider();
+            //var serviceProvider = new TripleDESCryptoServiceProvider();
+            var serviceProvider = TripleDES.Create();
             var encryptor = serviceProvider.CreateDecryptor(rgbKey, rgbIV);
             MemoryStream mStream = new MemoryStream();
             CryptoStream cStream = new CryptoStream(mStream, encryptor, CryptoStreamMode.Write);
