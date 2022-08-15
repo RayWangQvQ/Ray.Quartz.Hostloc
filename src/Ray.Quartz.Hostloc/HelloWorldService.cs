@@ -101,6 +101,8 @@ public class HelloWorldService : ITransientDependency
         _cookieManager.CookieList = re.Headers.GetValues("Set-Cookie").ToList();
         Logger.LogInformation("CookieStr已获取");
 
+        //todo:展示积分信息、距离升级
+
         Logger.LogInformation("Success{newLine}", Environment.NewLine);
     }
 
