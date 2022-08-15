@@ -54,12 +54,14 @@ namespace Ray.Quartz.Hostloc.Models
 
         public void LogInfo(ILogger logger)
         {
+            logger.LogInformation("-------积分明细-------");
             logger.LogInformation("动作名称：{ActionName}", ActionName);
             logger.LogInformation("总次数：{TotalCount}", TotalCount);
             logger.LogInformation("周期次数：{PeriodCount}", PeriodCount);
             logger.LogInformation("威望：{Prestige}", Prestige);
             logger.LogInformation("金钱：{Money}", Money);
             logger.LogInformation("最后奖励时间：{UpdateTime}{newLine}", UpdateTime, Environment.NewLine);
+            logger.LogInformation("-------积分明细-------");
         }
     }
 }
