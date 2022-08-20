@@ -25,8 +25,10 @@ public class HostlocModule : AbpModule
         var config = context.Services.GetConfiguration();
 
         context.Services.Configure<AccountOptions>(config.GetSection("Account"));
+        context.Services.Configure<HttpClientCustomOptions>(config.GetSection("HttpCustomConfig"));
         context.Services.AddSingleton<CookieManager>();
 
+        context.Services.AddScoped<DelayHttpMessageHandler>();
         context.Services
             .AddRefitClient<IHostlocApi>()
             .ConfigureHttpClient(c =>
@@ -36,7 +38,9 @@ public class HostlocModule : AbpModule
                 var ua = config["UserAgent"];
                 if (!string.IsNullOrWhiteSpace(ua))
                     c.DefaultRequestHeaders.UserAgent.ParseAdd(ua);
-            });
+            })
+            .AddHttpMessageHandler<DelayHttpMessageHandler>()
+            ;
     }
 
     public override Task OnApplicationInitializationAsync(ApplicationInitializationContext context)

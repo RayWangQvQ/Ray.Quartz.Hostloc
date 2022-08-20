@@ -10,6 +10,7 @@ using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 using Ray.Quartz.Hostloc.Helpers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using Ray.Quartz.Hostloc.Models;
