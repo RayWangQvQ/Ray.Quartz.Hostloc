@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Net.Http;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +31,7 @@ public class HostlocModule : AbpModule
         context.Services.AddSingleton<CookieManager>();
 
         context.Services.AddScoped<DelayHttpMessageHandler>();
+        context.Services.AddScoped<ProxyHttpClientHandler>();
         context.Services
             .AddRefitClient<IHostlocApi>()
             .ConfigureHttpClient(c =>
@@ -40,6 +43,7 @@ public class HostlocModule : AbpModule
                     c.DefaultRequestHeaders.UserAgent.ParseAdd(ua);
             })
             .AddHttpMessageHandler<DelayHttpMessageHandler>()
+            .ConfigurePrimaryHttpMessageHandler<ProxyHttpClientHandler>()
             ;
     }
 
