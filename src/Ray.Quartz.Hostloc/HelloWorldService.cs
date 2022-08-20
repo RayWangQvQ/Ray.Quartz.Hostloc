@@ -102,6 +102,8 @@ public class HelloWorldService : ITransientDependency
         _cookieManager.CookieList = re.Headers.GetValues("Set-Cookie").ToList();
         Logger.LogInformation("CookieStr已获取");
 
+        //todo:展示积分信息、距离升级
+
         Logger.LogInformation("Success{newLine}", Environment.NewLine);
     }
 
@@ -187,6 +189,14 @@ public class HelloWorldService : ITransientDependency
 
         await InitAsync();
 
+        var statistics = new VoteStatistics();
+
+        var historyList = await GetCreditHistoryAsync();
+        statistics.PreCreditHistory = historyList.FirstOrDefault(x => x.ActionName == taskName);
+
+        Logger.LogInformation("任务前：");
+        statistics.PreCreditHistory.LogInfo(Logger);
+
         //获取投票帖子
         Logger.LogInformation("搜索今日投票帖");
         var pageResponse = await _hostlocApi.GetVotePostListPageAsync();
@@ -234,7 +244,7 @@ public class HelloWorldService : ITransientDependency
                 {
                     Logger.LogInformation("曾经已投过票，跳过");
                 }
-                else
+                else if(votePageContent.Contains("单选投票")||votePageContent.Contains("多选投票"))
                 {
                     Logger.LogInformation("开始投票");
 
@@ -265,12 +275,16 @@ public class HelloWorldService : ITransientDependency
                     votePage = await _hostlocApi.GetForumPageAsync(_cookieManager.CookieStr, votePageUrl);
                     if (votePage.Content?.Contains("您已经投过票") ?? false)
                     {
+                        statistics.VotePosts.Add("votePost.Title");
                         Logger.LogInformation("确认通过");
                     }
                     else
                     {
                         Logger.LogInformation("投票失败");
                     }
+                }
+                else{
+                    Logger.LogInformation("打开投票详情页失败");
                 }
             }
             catch (Exception e)
@@ -285,6 +299,11 @@ public class HelloWorldService : ITransientDependency
         }
 
         //Logger.LogInformation(JsonSerializer.Serialize(votePostList, options: new JsonSerializerOptions {Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping}));
+
+        historyList = await GetCreditHistoryAsync();
+        statistics.AfterCreditHistory = historyList.FirstOrDefault(x => x.ActionName == taskName);
+
+        statistics.LogInfo(Logger);
     }
 
     #region private
