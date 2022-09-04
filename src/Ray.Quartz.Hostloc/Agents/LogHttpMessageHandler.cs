@@ -75,7 +75,7 @@ namespace Ray.Quartz.Hostloc.Agents
                     end = DateTime.Now;
 
                     _logger.LogDebug($"{msg} Content:");
-                    _logger.LogDebug($"{msg} {string.Join("", result.Cast<char>().Take(255))}...");
+                    _logger.LogDebug($"{msg} {result}");
                     _logger.LogDebug($"{msg} Duration: {end - start}");
                 }
             }
