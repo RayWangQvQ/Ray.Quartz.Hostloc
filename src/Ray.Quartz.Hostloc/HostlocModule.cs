@@ -31,6 +31,7 @@ public class HostlocModule : AbpModule
         context.Services.AddSingleton<CookieManager>();
 
         context.Services.AddScoped<DelayHttpMessageHandler>();
+        context.Services.AddScoped<LogHttpMessageHandler>();
         context.Services.AddScoped<ProxyHttpClientHandler>();
         context.Services
             .AddRefitClient<IHostlocApi>()
@@ -43,6 +44,7 @@ public class HostlocModule : AbpModule
                     c.DefaultRequestHeaders.UserAgent.ParseAdd(ua);
             })
             .AddHttpMessageHandler<DelayHttpMessageHandler>()
+            .AddHttpMessageHandler<LogHttpMessageHandler>()
             .ConfigurePrimaryHttpMessageHandler<ProxyHttpClientHandler>()
             ;
     }

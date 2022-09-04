@@ -6,15 +6,13 @@ using Microsoft.Extensions.Options;
 using Ray.Quartz.Hostloc.Agents;
 using Ray.Quartz.Hostloc.Configs;
 using Volo.Abp.DependencyInjection;
-using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 using Ray.Quartz.Hostloc.Helpers;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using Ray.Quartz.Hostloc.Models;
 using Ray.Quartz.Hostloc.Statistics;
+using Microsoft.Extensions.Configuration;
 
 namespace Ray.Quartz.Hostloc;
 
