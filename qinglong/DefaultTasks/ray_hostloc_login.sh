@@ -8,7 +8,7 @@ dir_shell=$QL_DIR/shell
 hostloc_repo="raywangqvq_ray.quartz.hostloc"
 
 echo "repo目录: $dir_repo"
-hostloc_repo_dir="$(find $dir_repo -type d -name $hostloc_repo | head -1)"
+hostloc_repo_dir="$(find $dir_repo -type d -iname $hostloc_repo | head -1)"
 echo -e "hostloc仓库目录: $hostloc_repo_dir\n"
 
 cd $hostloc_repo_dir/src/Ray.Quartz.Hostloc
