@@ -48,7 +48,7 @@ public class HostlocHostedService : IHostedService
         await helloWorldService.SayHelloAsync(cancellationToken);
         Console.WriteLine("DONE");
         await Task.Delay(10 * 1000, cancellationToken);
-        //_hostApplicationLifetime.StopApplication();
+        _hostApplicationLifetime.StopApplication();
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
