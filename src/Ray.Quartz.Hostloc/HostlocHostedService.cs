@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,9 +43,12 @@ public class HostlocHostedService : IHostedService
 
         var helloWorldService = _abpApplication.ServiceProvider.GetRequiredService<HelloWorldService>();
 
-        await helloWorldService.SayHelloAsync();
-
-        _hostApplicationLifetime.StopApplication();
+        await Task.Delay(10 * 1000, cancellationToken);
+        Console.WriteLine("READY");
+        await helloWorldService.SayHelloAsync(cancellationToken);
+        Console.WriteLine("DONE");
+        await Task.Delay(10 * 1000, cancellationToken);
+        //_hostApplicationLifetime.StopApplication();
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)

@@ -10,9 +10,14 @@ using Ray.Quartz.Hostloc.Helpers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Ray.Quartz.Hostloc.Models;
 using Ray.Quartz.Hostloc.Statistics;
 using Microsoft.Extensions.Configuration;
+using System.Threading;
+using Ray.Quartz.Hostloc.DomainService;
+using Serilog;
+using Serilog.Core;
 
 namespace Ray.Quartz.Hostloc;
 
@@ -21,18 +26,23 @@ public class HelloWorldService : ITransientDependency
     private readonly IConfiguration _configuration;
     private readonly IHostlocApi _hostlocApi;
     private readonly CookieManager _cookieManager;
+    private readonly PostDomainService _postDomainService;
+    private readonly KickOptions _kickOptions;
     private readonly AccountOptions _accountConfig;
 
     public HelloWorldService(
         IConfiguration configuration,
         IHostlocApi hostlocApi,
         IOptions<AccountOptions> accountOptions,
-        CookieManager cookieManager
-        )
+        CookieManager cookieManager,
+        PostDomainService postDomainService,
+        IOptions<KickOptions> kickOptions)
     {
         _configuration = configuration;
         _hostlocApi = hostlocApi;
         _cookieManager = cookieManager;
+        _postDomainService = postDomainService;
+        _kickOptions = kickOptions.Value;
         _accountConfig = accountOptions.Value;
         Logger = NullLogger<HelloWorldService>.Instance;
     }
@@ -40,7 +50,7 @@ public class HelloWorldService : ITransientDependency
     public ILogger<HelloWorldService> Logger { get; set; }
 
 
-    public async Task SayHelloAsync()
+    public async Task SayHelloAsync(CancellationToken cancellationToken)
     {
         Logger.LogInformation("Hello World!{newLine}", Environment.NewLine);
 
@@ -61,6 +71,9 @@ public class HelloWorldService : ITransientDependency
                 break;
             case "vote":
                 await VoteAsync();
+                break;
+            case "kick":
+                await Kick();
                 break;
             default:
                 Logger.LogWarning("任务不存在：{task}", taskName);
@@ -228,7 +241,7 @@ public class HelloWorldService : ITransientDependency
                 var votePageUrl = votePost.Url.Substring("forum.php".Length);
                 var tid = RegexHelper.QuerySingle(votePageUrl, "tid=[0-9]+");
                 tid = tid.Replace("tid=", "");
-                var votePage = await _hostlocApi.GetForumPageAsync(_cookieManager.CookieStr, votePageUrl);
+                var votePage = await _hostlocApi.CommonForumAsync(_cookieManager.CookieStr, votePageUrl);
                 var votePageContent = votePage.Content;
                 if (votePageContent.IsNullOrWhiteSpace())
                 {
@@ -242,7 +255,7 @@ public class HelloWorldService : ITransientDependency
                 {
                     Logger.LogInformation("曾经已投过票，跳过");
                 }
-                else if(votePageContent.Contains("单选投票")||votePageContent.Contains("多选投票"))
+                else if (votePageContent.Contains("单选投票") || votePageContent.Contains("多选投票"))
                 {
                     Logger.LogInformation("开始投票");
 
@@ -270,7 +283,7 @@ public class HelloWorldService : ITransientDependency
 
                     //检测投票结果
                     Logger.LogInformation("刷新页面确认结果：");
-                    votePage = await _hostlocApi.GetForumPageAsync(_cookieManager.CookieStr, votePageUrl);
+                    votePage = await _hostlocApi.CommonForumAsync(_cookieManager.CookieStr, votePageUrl);
                     if (votePage.Content?.Contains("您已经投过票") ?? false)
                     {
                         statistics.VotePosts.Add("votePost.Title");
@@ -281,7 +294,8 @@ public class HelloWorldService : ITransientDependency
                         Logger.LogInformation("投票失败");
                     }
                 }
-                else{
+                else
+                {
                     Logger.LogInformation("打开投票详情页失败");
                 }
             }
@@ -302,6 +316,56 @@ public class HelloWorldService : ITransientDependency
         statistics.AfterCreditHistory = historyList.FirstOrDefault(x => x.ActionName == taskName);
 
         statistics.LogInfo(Logger);
+    }
+
+    public async Task Kick()
+    {
+        var endTime = DateTime.Now.AddMinutes(50);
+        while (DateTime.Now < endTime)
+        {
+            //获取post详情
+            var post = await _postDomainService.GetById(_kickOptions.Tid);
+
+            Logger.LogInformation("当前楼层：{floor}", post.LastFloorIndex);
+
+            if (_kickOptions.Floors.Contains(++post.LastFloorIndex))
+            {
+                //回复
+                Logger.LogInformation("开始回复");
+                var req = new ReplyRequest(post.FormHash, _kickOptions.Reply);
+                var res = await _hostlocApi.Reply(post.Tid, post.Fid, req);
+                if (res.IsSuccessStatusCode)
+                {
+                    Logger.LogInformation("回复成功");
+                    break;
+                }
+
+                res = await _hostlocApi.Reply(post.Tid, post.Fid, req);
+                if (res.IsSuccessStatusCode)
+                {
+                    Logger.LogInformation("回复成功");
+                    break;
+                }
+
+                Logger.LogError("回复失败：{error}",  JsonSerializer.Serialize(res));
+                break;
+            }
+
+            //睡一会儿
+            var sleepSec = _kickOptions.IntervalSec;
+
+            var distance = _kickOptions.Floors.Select(x => x - post.LastFloorIndex);
+
+            //如果邻近目标楼层（1-3层），则睡眠时间缩短为2s
+            if (distance.Any(x => x > 0 && x < 4))
+            {
+                sleepSec = 2;
+                Logger.LogWarning("修改睡眠时间为{time}s",sleepSec);
+            }
+
+            Logger.LogInformation("开始睡眠");
+            await Task.Delay(sleepSec * 1000);
+        }
     }
 
     #region private

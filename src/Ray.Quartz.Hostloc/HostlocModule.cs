@@ -12,6 +12,7 @@ using Refit;
 using Volo.Abp;
 using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
+using Ray.Quartz.Hostloc.DomainService;
 
 namespace Ray.Quartz.Hostloc;
 
@@ -26,9 +27,17 @@ public class HostlocModule : AbpModule
 
         var config = context.Services.GetConfiguration();
 
+        context.Services.AddSingleton<CookieManager>();
+
+        #region config
+
         context.Services.Configure<AccountOptions>(config.GetSection("Account"));
         context.Services.Configure<HttpClientCustomOptions>(config.GetSection("HttpCustomConfig"));
-        context.Services.AddSingleton<CookieManager>();
+        context.Services.Configure<KickOptions>(config.GetSection("Kick"));
+
+        #endregion
+
+        #region Api
 
         context.Services.AddScoped<DelayHttpMessageHandler>();
         context.Services.AddScoped<LogHttpMessageHandler>();
@@ -47,6 +56,14 @@ public class HostlocModule : AbpModule
             .AddHttpMessageHandler<LogHttpMessageHandler>()
             .ConfigurePrimaryHttpMessageHandler<ProxyHttpClientHandler>()
             ;
+
+        #endregion
+
+        #region domainservice
+
+        context.Services.AddScoped<PostDomainService, PostDomainService>();
+
+        #endregion
     }
 
     public override Task OnApplicationInitializationAsync(ApplicationInitializationContext context)

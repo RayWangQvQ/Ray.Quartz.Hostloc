@@ -10,6 +10,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决方案项", "{F8C2544A-2679-492A-A5ED-19F672ECEF1F}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		clean.cmd = clean.cmd
 		common.props = common.props
 		LICENSE = LICENSE
 		README.md = README.md
