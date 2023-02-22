@@ -323,6 +323,8 @@ public class HelloWorldService : ITransientDependency
         var endTime = DateTime.Now.AddMinutes(50);
         while (DateTime.Now < endTime)
         {
+            Logger.LogInformation("目标楼层：{floors}", string.Join(",", _kickOptions.Floors));
+
             //获取post详情
             var post = await _postDomainService.GetById(_kickOptions.Tid);
 
@@ -347,7 +349,7 @@ public class HelloWorldService : ITransientDependency
                     break;
                 }
 
-                Logger.LogError("回复失败：{error}",  JsonSerializer.Serialize(res));
+                Logger.LogError("回复失败：{error}", JsonSerializer.Serialize(res));
                 break;
             }
 
@@ -360,10 +362,10 @@ public class HelloWorldService : ITransientDependency
             if (distance.Any(x => x > 0 && x < 4))
             {
                 sleepSec = 2;
-                Logger.LogWarning("修改睡眠时间为{time}s",sleepSec);
+                Logger.LogWarning("修改睡眠时间为{time}s", sleepSec);
             }
 
-            Logger.LogInformation("开始睡眠");
+            Logger.LogInformation("开始睡眠{time}s", sleepSec);
             await Task.Delay(sleepSec * 1000);
         }
     }
