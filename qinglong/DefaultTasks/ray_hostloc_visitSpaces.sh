@@ -4,14 +4,9 @@
 
 dir_shell=$QL_DIR/shell
 . $dir_shell/share.sh
+. /root/.bashrc
 
-hostloc_repo="raywangqvq_ray.quartz.hostloc"
-
-echo "repo目录: $dir_repo"
-hostloc_repo_dir="$(find $dir_repo -type d -iname $hostloc_repo | head -1)"
-echo -e "hostloc仓库目录: $hostloc_repo_dir\n"
-
-cd $hostloc_repo_dir/src/Ray.Quartz.Hostloc
+cd ./src/Ray.Quartz.Hostloc
 # export DOTNET_ENVIRONMENT=Production && \
 export Ray_Hostloc_Run=visitSpace && \
 dotnet run --ENVIRONMENT=Production

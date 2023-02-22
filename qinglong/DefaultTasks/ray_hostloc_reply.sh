@@ -8,5 +8,5 @@ dir_shell=$QL_DIR/shell
 
 cd ./src/Ray.Quartz.Hostloc
 # export DOTNET_ENVIRONMENT=Production && \
-export Ray_Hostloc_Run=vote && \
+export Ray_Hostloc_Run=reply && \
 dotnet run --ENVIRONMENT=Production
