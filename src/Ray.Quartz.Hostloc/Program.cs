@@ -15,14 +15,14 @@ public class Program
     public static async Task<int> Main(string[] args)
     {
         Log.Logger = new LoggerConfiguration()
-#if DEBUG
-            .MinimumLevel.Debug()
-#else
             .MinimumLevel.Information()
-#endif
             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
             .Enrich.FromLogContext()
-            .WriteTo.Async(c => c.File($"Logs/{DateTime.Now.ToString("yyyy-MM-dd")}/{DateTime.Now.ToString("HH-mm-ss")}.txt"))
+            .WriteTo.Async(c =>
+            {
+                c.File($"Logs/{DateTime.Now.ToString("yyyy-MM-dd")}/{DateTime.Now.ToString("HH-mm-ss")}.txt",
+                    restrictedToMinimumLevel: LogEventLevel.Debug);
+            })
             .WriteTo.Async(c => c.Console())
             .CreateLogger();
 
