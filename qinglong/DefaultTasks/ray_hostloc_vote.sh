@@ -5,6 +5,6 @@
 . ray_hostloc_base.sh
 
 cd ./src/Ray.Quartz.Hostloc
-# export DOTNET_ENVIRONMENT=Production && \
+export DOTNET_ENVIRONMENT=Production && \
 export Ray_Hostloc_Run=vote && \
 dotnet run --ENVIRONMENT=Production
